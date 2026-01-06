@@ -32,7 +32,7 @@ function Input({refresh}) {
     };
     const onSubmit = () => {
         const csrfToken = getCookie('csrftoken');
-        axios.post('http://localhost:8000/filterBus/',{start:startValue,destination:destinationValue},{
+        axios.post(import.meta.env.VITE_API_BASE_URL + '/filterBus/',{start:startValue,destination:destinationValue},{
                     headers: {
                         'X-CSRFToken': csrfToken
                     },
@@ -70,7 +70,7 @@ function Input({refresh}) {
         setDebounce(newTimer)
     }
     const fetchSuggestions = (value,type)=>{
-        axios.get('http://localhost:8000/name/',{params:{value:value}}).then(response=>{
+        axios.get(import.meta.env.VITE_API_BASE_URL + '/name/',{params:{value:value}}).then(response=>{
             console.log(response)
             if (type==="start") setStartSuggestions(response.data);
             else setDestinationSuggestions(response.data)

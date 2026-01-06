@@ -31,7 +31,7 @@ function App() {
       setRefresh(prev => prev + 1)
     }
     else {
-      axios.get("http://localhost:8000/bus/").then(response => { setBuses(response.data) })
+      axios.get(import.meta.env.VITE_API_BASE_URL + "/bus/").then(response => { setBuses(response.data) })
     }
     setTimeout(() => {
       setIsRefreshing(false)
@@ -44,11 +44,11 @@ function App() {
 
   // single run {Buses Data, csrf}
   useEffect(() => {
-    axios.get("http://localhost:8000/bus/").then(response => {
+    axios.get(import.meta.env.VITE_API_BASE_URL + "/bus/").then(response => {
       setBuses(response.data)
       // console.log("useEffect",response)
     })
-    axios.get('http://localhost:8000/csrf/', {
+    axios.get(import.meta.env.VITE_API_BASE_URL + '/csrf/', {
       withCredentials: true,
     }).then(response => console.log(response));
 

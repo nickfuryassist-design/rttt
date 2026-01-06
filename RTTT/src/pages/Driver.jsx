@@ -37,7 +37,7 @@ function Driver() {
           const { latitude, longitude } = pos.coords;
           setPosition([latitude, longitude]);
           
-          axios.post('http://localhost:8000/driver/setlocation/',{bus_id:bus.username,latitude:latitude,longitude:longitude},{
+          axios.post(import.meta.env.VITE_API_BASE_URL + '/driver/setlocation/',{bus_id:bus.username,latitude:latitude,longitude:longitude},{
                       headers: {
                           'X-CSRFToken': csrfToken
                       },
