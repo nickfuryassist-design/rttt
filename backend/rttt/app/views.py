@@ -86,32 +86,68 @@ def suggestions(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def filterBus(request):
-    result = []
-    start = Stop.objects.get(stop_name=request.data.get('start'))
-    dest = Stop.objects.get(stop_name=request.data.get('destination'))
-    for r in Route.objects.all():
-        # coords = getRoute(r)
-        # geometry,distance,route = get_route_geometry(coords)
-        rs = RouteStop.objects.filter(route=r)
-        try:
-            ss = rs.get(stop=start)
-            ds = rs.get(stop=dest)
-            if ss.stop_order < ds.stop_order:
-                coords = getRoute(r)
-                geometry,distance,route = get_route_geometry(coords)
+    start_name = request.data.get('start')
+    dest_name = request.data.get('destination')
+    routes = Route.objects.filter(
+        routestop__stop__stop_name=start_name
+    ).filter(
+        routestop__stop__stop_name=dest_name
+    ).distinct()
 
-                for bus in Bus.objects.filter(route=r):
-                    b = BusLocation.objects.get(bus=bus)
-                    start_distance = get_position_along_route(geometry,[start.lng,start.lat])
-                    bus_distance = get_position_along_route(geometry,[b.lng,b.lat])
-                    total_distance = get_position_along_route(geometry,[dest.lng,dest.lat])
-                    
-                    if start_distance>=bus_distance:
-                        result.append({"id":b.bus.bus_number, "geometry":geometry,"lat":b.lat,"lng":b.lng,"distance":total_distance-bus_distance})  #,b.speed
-        except Exception as e:
-            print(e)
+    result = []
     
+    for r in routes:
+        try:
+            start_stop = RouteStop.objects.get(route=r, stop__stop_name=start_name)
+            dest_stop = RouteStop.objects.get(route=r, stop__stop_name=dest_name)
+            if start_stop.stop_order < dest_stop.stop_order:
+                coords = getRoute(r)
+                geometry, distance, route = get_route_geometry(coords)
+                start_coords = [float(start_stop.stop.lng), float(start_stop.stop.lat)]
+                dest_coords = [float(dest_stop.stop.lng), float(dest_stop.stop.lat)]
+
+                # Calculate distances strictly based on the route path
+                start_distance = get_position_along_route(geometry, start_coords)
+                total_dest_distance = get_position_along_route(geometry, dest_coords)
+                for bus_loc in BusLocation.objects.filter(bus__route=r):
+                    bus_coords = [float(bus_loc.lng), float(bus_loc.lat)]
+                    bus_dist = get_position_along_route(geometry, bus_coords)
+                    if start_distance >= bus_dist:
+                        result.append({"id":bus_loc.bus.bus_number, "geometry":geometry,"lat":bus_loc.lat,"lng":bus_loc.lng,"distance":total_dest_distance - bus_dist})  #,b.speed
+
+        except Exception as e:
+            print(f"Error processing route {r.route_name}: {e}")
+            continue
     return Response(result)
+
+# def filterBus(request):
+#     result = []
+#     start = Stop.objects.get(stop_name=request.data.get('start'))
+#     dest = Stop.objects.get(stop_name=request.data.get('destination'))
+
+#     for r in Route.objects.all():
+#         # coords = getRoute(r)
+#         # geometry,distance,route = get_route_geometry(coords)
+#         rs = RouteStop.objects.filter(route=r)
+#         try:
+#             ss = rs.get(stop=start)
+#             ds = rs.get(stop=dest)
+#             if ss.stop_order < ds.stop_order:
+#                 coords = getRoute(r)
+#                 geometry,distance,route = get_route_geometry(coords)
+
+#                 for bus in Bus.objects.filter(route=r):
+#                     b = BusLocation.objects.get(bus=bus)
+#                     start_distance = get_position_along_route(geometry,[start.lng,start.lat])
+#                     bus_distance = get_position_along_route(geometry,[b.lng,b.lat])
+#                     total_distance = get_position_along_route(geometry,[dest.lng,dest.lat])
+                    
+#                     if start_distance>=bus_distance:
+#                         result.append({"id":b.bus.bus_number, "geometry":geometry,"lat":b.lat,"lng":b.lng,"distance":total_distance-bus_distance})  #,b.speed
+#         except Exception as e:
+#             print(e)
+    
+#     return Response(result)
 
 
 
