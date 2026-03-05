@@ -31,15 +31,15 @@ def login(request):
         key='access',
         value=access_token,
         httponly=True,
-        secure=False, #set True in production
-        samesite='Lax'
+        secure=True, #set True in production
+        samesite='None'
     )
     res.set_cookie(
         key='refresh',
         value=str(refresh),
         httponly=True,
-        secure=False,
-        samesite='Lax'
+        secure=True,
+        samesite='None'
     )
 
     return res
@@ -88,7 +88,7 @@ class CustomRefreshTokenView(TokenRefreshView):
                 key='access',
                 value=access_token,
                 httponly=True,
-                secure=False,
+                secure=True,
                 samesite='None',
                 path='/'
             )
@@ -128,15 +128,15 @@ class LoginView(TokenObtainPairView):
             key='access',
             value=access_token,
             httponly=True,
-            secure=False,  # set True in production
-            samesite='Lax'
+            secure=True,  # set True in production
+            samesite='None'
         )
         res.set_cookie(
             key='refresh',
             value=str(refresh),
             httponly=True,
-            secure=False,
-            samesite='Lax'
+            secure=True,
+            samesite='None'
         )
 
         return res
